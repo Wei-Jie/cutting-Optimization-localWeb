@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cutting Optimizer Web</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cutting Optimizer</h1>
+            <p>2D Non-Guillotine Bin Packing with Defect Avoidance</p>
+        </header>
+        
+        <main class="dashboard">
+            <!-- Sidebar: Parameters -->
+            <aside class="sidebar card">
+                <h2>設定 (Settings)</h2>
+                
+                <div class="section">
+                    <h3>運算設定 (Settings)</h3>
+                    <div class="input-group">
+                        <label>原物料寬度 (W):</label>
+                        <input type="number" id="binW" value="500">
+                    </div>
+                    <div class="input-group">
+                        <label>原物料長度 (H):</label>
+                        <input type="number" id="binH" value="500">
+                    </div>
+                    <div class="input-group">
+                        <label>執行秒數 (Timeout):</label>
+                        <input type="number" id="timeoutSec" value="5.0" step="0.5">
+                    </div>
+                    <button class="btn btn-secondary" id="updateBinBtn">更新畫布</button>
+                </div>
+                
+                <div class="section">
+                    <h3>產品清單 (Products)</h3>
+                    <div id="productList"></div>
+                    <div class="add-item-form">
+                        <input type="text" id="newProdId" placeholder="ID" style="width:20%">
+                        <input type="number" id="newProdW" placeholder="W" style="width:20%">
+                        <input type="number" id="newProdH" placeholder="H" style="width:20%">
+                        <input type="number" id="newProdQty" placeholder="Qty" value="1" style="width:20%">
+                        <button class="btn btn-small" id="addProdBtn" style="width:15%">+</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>瑕疵列表 (Defects)</h3>
+                    <p class="hint">可直接在右側畫布點擊拖曳新增</p>
+                    <div id="defectList"></div>
+                </div>
+
+                <div class="section">
+                    <div class="input-group" style="justify-content: flex-start; gap: 10px;">
+                        <input type="checkbox" id="allowInfinite">
+                        <label for="allowInfinite" style="cursor: pointer; color: #cbd5e1;">無限數量 (自動塞滿最佳化)</label>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary primary-action" id="optimizeBtn">開始計算 (Optimize)</button>
+                <div id="statusMsg" class="status-message"></div>
+            </aside>
+            
+            <!-- Main: Visualization -->
+            <section class="visualizer card">
+                <div class="visualizer-header">
+                    <h2>切割預覽 (Preview)</h2>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <button class="btn btn-small" id="exportBtn" style="display: none; background-color: #10b981;">匯出 CSV</button>
+                        <div class="stats">
+                            <span>使用率: <strong id="utilizationLabel">0%</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="cuttingCanvas"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/static/visualizer.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+# Python 相關
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 虛擬環境
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# 測試相關
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.sveditor
+.pytest_cache/
+.hypothesis/
+
+# IDE 與編輯器設定
+.vscode/
+.idea/
+.cursor/
+*.swp
+*.swo
+.~lock.*
+
+# AI Agent 與系統目錄
+.gemini/
+.agent/
+__pycache__
+
+# 專案產生的暫存或匯出檔案
+*.csv
+*.log
+
+# 作業系統檔案
+.DS_Store
+Thumbs.db

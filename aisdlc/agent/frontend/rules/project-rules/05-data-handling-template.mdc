@@ -1,0 +1,495 @@
+---
+description: 數據處理與 API 規範模板
+globs:
+alwaysApply: true
+---
+
+# 數據處理與 API
+
+_填寫說明：數據處理與 API 文件定義專案的數據獲取、API 整合、狀態管理等相關規範_
+_檔名格式：data-handling.mdc_
+
+本應用程序使用 [框架] 的數據獲取和 API 功能。
+
+_填寫說明：[框架] 如：Next.js、Nuxt.js、React、Vue.js、Angular 等前端框架_
+
+## 服務器操作
+
+_填寫說明：列出處理服務器端邏輯和數據操作的核心文件_
+
+- `[服務器操作文件]` - 服務器端操作函數
+- `[數據處理文件]` - 數據處理和獲取函數
+
+_填寫說明：_
+_- [服務器操作文件]：如 `src/lib/actions.ts`、`src/server/actions.js`、`src/api/actions.ts` 等_
+_- [數據處理文件]：如 `src/lib/data.ts`、`src/services/api.js`、`src/utils/data.ts` 等_
+
+## API 路由
+
+_填寫說明：說明專案中 API 路由的組織結構，適用於有後端 API 路由的框架_
+
+- `[API路由目錄]` - API 路由目錄
+- `[認證API目錄]` - 身份驗證 API 端點
+
+_填寫說明：_
+_- [API路由目錄]：如 `src/app/api`、`src/pages/api`、`api/` 等_
+_- [認證API目錄]：如 `src/app/api/auth`、`src/pages/api/auth`、`api/auth/` 等_
+_- 如果專案不包含後端 API 路由（純前端專案），可以移除此章節_
+
+## 數據驗證
+
+_填寫說明：說明專案使用的數據驗證方案和相關文件_
+
+- `[驗證文件]` - 使用 [驗證庫] 進行數據驗證
+- `[工具文件]` - 實用工具函數
+
+_填寫說明：_
+_- [驗證文件]：如 `src/lib/zod.ts`、`src/schemas/validation.js`、`src/utils/validators.ts` 等_
+_- [驗證庫]：如 Zod、Yup、Joi、Ajv、class-validator 等_
+_- [工具文件]：如 `src/lib/utils.ts`、`src/utils/helpers.js`、`src/common/utils.ts` 等_
+
+## types定義
+
+_填寫說明：說明專案中 TypeScript 類型定義的組織方式_
+
+- `[類型定義文件]` - API types定義
+
+_填寫說明：_
+_- [類型定義文件]：如 `@/src/types/api.ts`、`src/types/index.ts`、`types/api.d.ts` 等_
+_- 如果專案使用 JavaScript 而非 TypeScript，可以移除此章節或改為 JSDoc 類型說明_
+
+## 環境變量
+
+_填寫說明：說明 API 相關的環境變數配置和版本管理_
+
+- `[環境變量文件]` - 環境變量類型化和驗證
+- API 端點版本配置說明
+  - 專案中的 API 版本（如 `v1`）已經在 `[環境配置文件]` 的 `[版本變數名]` 環境變數中配置
+  - `[數據文件]` 中的 `[API函數]` 函數會自動組合 `[基礎URL變數]` 和 `[版本變數]`
+  - **因此在 `[API映射類型]` 中的端點路徑不可包含版本前綴，否則會造成重複路徑錯誤**
+
+_填寫說明：_
+_- [環境變量文件]：如 `src/env.mjs`、`src/config/env.ts`、`.env.example` 等_
+_- [環境配置文件]：如 `.env.local`、`.env.development`、`.env.production` 等_
+_- [版本變數名]：如 `API_VERSION`、`API_V`、`BACKEND_VERSION` 等_
+_- [數據文件]：如 `data.ts`、`api.js`、`services.ts` 等_
+_- [API函數]：如 `fetchApi`、`apiCall`、`request` 等_
+_- [基礎URL變數]：如 `BASE_API_URL`、`API_BASE_URL`、`BACKEND_URL` 等_
+_- [API映射類型]：如 `ApiResponseMap`、`ApiEndpoints`、`ApiRoutes` 等_
+
+```[程式語言]
+// ❌ 錯誤：會導致重複的版本路徑
+"[版本前綴]/api/endpoint": [回應類型];
+
+// ✅ 正確：系統會自動添加版本前綴
+"/api/endpoint": [回應類型];
+```
+
+_填寫說明：_
+_- [程式語言]：如 typescript、javascript 等_
+_- [版本前綴]：如 `/v1`、`/api/v2`、`/v3` 等_
+_- [回應類型]：如 `ResponseData`、`ApiResponse`、`EndpointResponse` 等_
+
+## API 界面設計
+
+_填寫說明：定義專案中 API 調用的統一模式和最佳實踐_
+
+### API 數據獲取模式
+
+本應用程序使用統一的 API 數據獲取模式，所有 API 調用都通過 `[數據文件]` 中的 `[API函數]` 函數封裝：
+
+_填寫說明：說明專案採用的統一 API 調用模式_
+
+```[程式語言]
+async function [API函數]<T extends keyof [API映射類型]>(
+  endpoint: T,
+  options?: {
+    method?: string;
+    body?: Record<string, unknown>;
+    transform?: (data: unknown) => [API映射類型][T];
+    cache?: boolean;
+    delay?: number;
+  },
+): Promise<[API映射類型][T]> {
+  // 實現細節
+}
+```
+
+_填寫說明：此範例展示函數簽名，實際實作細節會根據專案需求而異_
+
+所有 API 端點和對應的返回類型都在 `[API映射類型]` 類型中定義，確保類型安全。
+
+### Mock Data 模式
+
+_填寫說明：說明開發階段使用 Mock Data 的規範和最佳實踐，實際細節會根據專案需求而異_
+
+在開發階段，本應用程序支援 Mock Data 模式，用於前端開發和測試。Mock Data 應遵循以下規則：
+
+#### 1. Mock Data 函數結構
+
+```[程式語言]
+export async function [Mock函數名稱](
+  param1: [類型1],
+  param2: [類型2],
+  // ... 其他參數
+) {
+  [防緩存函數](); // 避免緩存 mock 資料
+
+  // 可選：添加延遲模擬真實 API 回應時間
+  // await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // Mock 資料定義
+  let mockData = [
+    {
+      id: "(測試資料)1",
+      name: "測試項目1",
+      value: 100,
+      timestamp: "[時間戳格式]",
+    },
+    {
+      id: "(測試資料)2",
+      name: "測試項目2",
+      value: 200,
+      timestamp: "[時間戳格式]",
+    },
+  ];
+
+  // 根據參數進行資料過濾/處理
+  if (param1 === "filter_condition") {
+    mockData = mockData.filter(item => item.value > 150);
+  }
+
+  // 返回符合 ResponseData 格式的結構
+  const responseData = {
+    totalPage: 1,
+    totalCount: mockData.length,
+    dataList: mockData,
+  };
+
+  return responseData;
+}
+```
+
+_填寫說明：_
+_- [Mock函數名稱]：如 `getMockUsers`、`fetchMockProducts`、`loadMockData` 等_
+_- [類型1], [類型2]：如 `string`、`number`、`FilterOptions` 等_
+_- [防緩存函數]：如 `noStore`、`revalidateTag`、`unstable_noStore` 等（框架特定）_
+_- [時間戳格式]：如 `"2024-07-22T20:33:02.107870"`、`Date.now()`、`new Date().toISOString()` 等_
+
+#### 2. Mock Data 規則
+
+- **函數命名**：保持與真實 API 函數相同的命名和參數結構
+- **資料標識**：Mock 資料應包含 "(測試資料)" 前綴以便識別
+- **參數處理**：根據傳入參數進行適當的資料過濾和處理
+- **回應格式**：返回格式必須符合對應的 TypeScript 介面定義
+- **緩存控制**：使用 `[防緩存函數]()` 避免 mock 資料被緩存
+- **延遲模擬**：可選擇性添加延遲來模擬真實網路延遲
+
+#### 3. Mock Data 轉換到真實 API
+
+當後端 API 準備就緒時，只需要：
+
+1. 移除 mock 資料陣列
+2. 移除 `[防緩存函數]()` 調用（除非需要）
+3. 替換為 `[API函數]()` 調用
+4. 保持函數簽名和返回類型不變
+
+### API 錯誤處理
+
+_填寫說明：說明專案中統一的 API 錯誤處理機制_
+
+所有 API 調用都包含完整的錯誤處理，通過 `[錯誤類別]` 類封裝錯誤信息，包括錯誤碼和錯誤描述。前端組件應適當處理 API 錯誤並顯示友好的錯誤信息。
+
+_填寫說明：[錯誤類別] 如：`ApiError`、`CustomError`、`RequestError` 等_
+
+#### Mock Data 錯誤模擬
+
+在 Mock Data 模式下，可以模擬不同的錯誤情況：
+
+```[程式語言]
+export async function [Mock錯誤函數](
+  shouldError: boolean = false
+) {
+  [防緩存函數]();
+
+  // 模擬錯誤情況
+  if (shouldError) {
+    throw new [錯誤類別]("Mock API error", 500, "模擬的伺服器錯誤");
+  }
+
+  // 正常的 mock 資料...
+}
+```
+
+### API 開發流程
+
+1. **前端先行**：使用 Mock Data 模式開發前端功能
+2. **介面定義**：確保 TypeScript 介面和驗證 schema 正確定義
+3. **後端整合**：後端 API 準備就緒後，替換 Mock Data 為真實 API 調用
+4. **測試驗證**：確保真實 API 回應格式與 Mock Data 一致
+
+## Coding Style 規範
+
+_填寫說明：定義專案中數據處理相關的編碼規範，可根據實際專案需求調整_
+
+### TypeScript 類型定義規範
+
+#### 1. 類型定義語法
+
+```[程式語言]
+// ✅ 使用 export type（推薦）
+export type [類型名稱] = {
+  [屬性1]: [類型1];
+  [屬性2]: [類型2];
+  [屬性3]: [類型3];
+};
+
+// ❌ 避免使用 export interface（除非需要擴展）
+export interface [類型名稱] {
+  [屬性1]: [類型1];
+  [屬性2]: [類型2];
+  [屬性3]: [類型3];
+}
+```
+
+_填寫說明：此規範可根據團隊偏好和專案需求調整_
+
+#### 2. 類型命名規範
+
+- **類型名稱**：使用 [命名格式]，描述性命名
+- **API 響應類型**：使用 `*ResponseData` 後綴
+- **表單資料類型**：使用 `*FormData` 後綴
+- **列表項目類型**：使用 `*Item` 後綴
+
+_填寫說明：[命名格式] 如：PascalCase、camelCase 等_
+
+### API 函數規範
+
+#### 1. 函數命名規範
+
+- **獲取資料**：使用 `get*` 前綴
+- **創建資料**：使用 `create*` 前綴
+- **更新資料**：使用 `update*` 前綴
+- **刪除資料**：使用 `delete*` 前綴
+
+#### 2. 函數結構規範
+
+```[程式語言]
+export async function [API函數名稱](
+  param1: [類型1],
+  param2: [類型2],
+  // ... 其他參數，使用有意義的參數名
+) {
+  [防緩存函數](); // Mock 模式必須包含
+
+  // 生產環境：使用 [API函數] 調用真實 API
+  // return [API函數]("/api/endpoint", { body: { param1, param2 } });
+
+  // 開發階段：Mock Data 實現
+  let mockData = [
+    {
+      id: "(測試資料)1",
+      // ... mock 資料
+    },
+  ];
+
+  // 參數處理和資料過濾
+  if (param1 === "filter_condition") {
+    mockData = mockData.filter(/* 過濾邏輯 */);
+  }
+
+  return {
+    totalPage: 1,
+    totalCount: mockData.length,
+    dataList: mockData,
+  };
+}
+```
+
+**重要風格規範**：
+
+- **回傳型別**：省略明確的回傳型別註記（如 `: Promise<XXX>`），讓 TypeScript 自行推論
+- **參數結構**：使用 primitive 參數列表，避免單一物件包裝（如 `data: FormData`）
+- **[API函數] 調用**：不指定 method（默認為 POST），body 直接展開參數名稱
+- **參數命名**：使用有意義的參數名稱，與 API 欄位對應
+
+_填寫說明：以上風格規範僅為建議，可根據團隊代碼風格調整_
+
+### Server Actions 規範
+
+_填寫說明：適用於支援 Server Actions 的框架（如 Next.js），其他框架可移除此章節_
+
+#### 1. Action 函數命名
+
+- **命名格式**：`{operation}{Resource}Action`
+- **使用動詞**：create, update, delete, get
+
+#### 2. Action 函數結構
+
+```[程式語言]
+export async function [Action函數名稱](
+  formData: [表單資料類型],
+) {
+  try {
+    // 1. 驗證輸入資料
+    const validatedData = [驗證函數](formData);
+
+    // 2. 調用 data 層函數（使用 primitive 參數）
+    const data = await [數據函數](
+      validatedData.[屬性1],
+      validatedData.[屬性2],
+      validatedData.[屬性3],
+    );
+
+    // 3. 重新驗證相關頁面
+    [重新驗證函數]("/resource-path");
+
+    // 4. 返回成功響應
+    return {
+      status: "success",
+      message: "操作成功",
+      data
+    };
+  } catch (error) {
+    // 5. 統一錯誤處理
+    return [錯誤處理函數](error, {
+      defaultMessage: "操作失敗，請聯繫管理人員",
+      redirectOnUnauthorized: true,
+      redirectPath: "/login",
+    });
+  }
+}
+```
+
+_填寫說明：_
+_- [Action函數名稱]：如 `createUserAction`、`updateProductAction` 等_
+_- [表單資料類型]：如 `z.infer<typeof userSchema>`、`UserFormData` 等_
+_- [驗證函數]：如 `userSchema.parse`、`validateUserData` 等_
+_- [數據函數]：如 `createUser`、`updateProduct` 等_
+_- [重新驗證函數]：如 `revalidatePath`、`revalidateTag` 等_
+_- [錯誤處理函數]：如 `handleActionError`、`processError` 等_
+
+### 驗證 Schema 規範
+
+#### 1. Schema 命名規範
+
+- **表單 Schema**：`{resource}Schema`
+- **API Schema**：`{resource}{Operation}Schema`
+- **命名格式**：[命名格式] + "Schema" 後綴
+
+#### 2. Schema 結構規範
+
+```[程式語言]
+// 基本 Schema 結構
+export const [Schema名稱] = [驗證庫].object({
+  [欄位1]: [驗證庫]
+    .string()
+    .min(1, "[錯誤訊息1]")
+    .max(30, "[錯誤訊息2]"),
+  [欄位2]: [驗證庫]
+    .string()
+    .email("[錯誤訊息3]"),
+  [欄位3]: [驗證庫].coerce
+    .number({ message: "[錯誤訊息4]" })
+    .min(1, "[錯誤訊息5]")
+    .max(100, "[錯誤訊息6]"),
+});
+```
+
+_填寫說明：_
+_- [Schema名稱]：如 `userSchema`、`productCreateSchema` 等_
+_- [驗證庫]：如 `z`（Zod）、`yup`、`joi` 等_
+_- [欄位1-3]：如 `name`、`email`、`age` 等實際欄位名_
+_- [錯誤訊息1-6]：如 "名稱為必填"、"請輸入有效的電子郵件地址" 等_
+
+## 表單提交邏輯規範
+
+_填寫說明：定義專案中表單提交的標準模式和最佳實踐_
+
+### 表單提交標準模式
+
+本應用程序的表單提交邏輯應遵循統一的模式：
+
+#### 1. 基本結構
+
+```[程式語言]
+import { [路由Hook] } from "[路由庫]";
+import { [狀態Hook] } from "[框架]";
+import { [表單Hook] } from "[表單庫]";
+import { [通知函數] } from "[通知庫]";
+import { [提交按鈕組件] } from "[按鈕組件路徑]";
+
+export function [表單組件名稱]() {
+  const [路由實例] = [路由Hook]();
+  const [狀態變數, 狀態設定函數] = [狀態Hook]();
+
+  const [表單實例] = [表單Hook]<[表單類型]>({
+    [驗證器]: [驗證函數]([Schema]),
+    [預設值]: {
+      // 預設值...
+    },
+  });
+
+  async function [提交函數](formData: [表單類型]) {
+    [狀態設定函數](async () => {
+      try {
+        const response = await [Action函數](formData);
+        if (response.status === "failed") {
+          [通知函數].error(response.message);
+        } else if (response.status === "success") {
+          [通知函數].success(response.message);
+          // 成功後的導航或其他邏輯
+        }
+      } catch (error) {
+        console.error("操作失敗:", error);
+        [通知函數].error("操作失敗，請稍後再試或聯繫管理人員", {
+          duration: Infinity,
+          closeButton: true,
+        });
+      }
+    });
+  }
+
+  return (
+    [表單組件開始]
+      [表單內容]
+      [提交按鈕組件]
+    [表單組件結束]
+  );
+}
+```
+
+_填寫說明：_
+_- [路由Hook]：如 `useRouter`、`useNavigate`、`$router` 等_
+_- [路由庫]：如 "next/navigation"、"react-router-dom"、"vue-router" 等_
+_- [狀態Hook]：如 `useTransition`、`useState`、`ref` 等_
+_- [框架]：如 "react"、"vue"、"@angular/core" 等_
+_- [表單Hook]：如 `useForm`、`reactive`、`FormBuilder` 等_
+_- [表單庫]：如 "react-hook-form"、"vee-validate"、"@angular/forms" 等_
+_- [通知函數]：如 `toast`、`notification`、`alert` 等_
+_- [通知庫]：如 "sonner"、"react-toastify"、"vue-toastification" 等_
+
+#### 2. 關鍵規範
+
+1. **狀態管理**
+
+   - 使用 [狀態Hook] 管理 pending 狀態
+   - 使用 [狀態設定函數] 包裝 async 操作
+   - 使用 [提交按鈕組件] 組件顯示 pending 狀態
+
+2. **錯誤處理**
+
+   - 檢查 `response.status === "failed"` 和 `"success"`
+   - catch block 中使用 `console.error` 記錄錯誤
+   - 使用 [通知函數] 顯示錯誤信息
+
+3. **成功處理**
+
+   - 使用 [通知函數] 顯示成功信息
+   - 根據需要進行頁面導航或狀態更新
+
+4. **表單驗證**
+   - 使用 [驗證器] 和驗證 schema 進行表單驗證
+   - 設定適當的 [預設值]
+
+_填寫說明：以上規範應根據專案使用的實際框架和庫進行調整_

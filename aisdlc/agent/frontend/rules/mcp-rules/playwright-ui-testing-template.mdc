@@ -1,0 +1,154 @@
+---
+alwaysApply: true
+---
+
+# Playwright MCP 執行UI測試流程
+
+## 1. 簡介
+
+本文描述以 **AI 助手 + Playwright MCP 工具** 執行自動化測試的標準流程。  
+AI 會根據 BDD 測項文件將步驟**序列化**、**產生待執行清單**、**逐步執行並記錄結果**，最後**彙整執行報告**。
+
+> 對應的 MCP tools
+>
+> - `auto_test_flow`：回傳本流程規則文件
+> - `initialize_test`：接收測項，序列化並回傳 **待執行清單**
+> - `record_step`：每完成一步即上報結果（含預期/實際、程式碼片段）
+> - `summarize_results`：計算完成率、耗時與各類狀態統計，輸出總結
+
+---
+
+## 1.1 流程執行守則（重要）
+
+**每次執行任務都必須遵循以下原則：**
+
+1. **單一來源**：所有測試步驟以 BDD 檔為唯一準則（Given / When / Then / Teardown）。
+2. **可追溯**：每一步都要呼叫 `record_step`，並保存：`testId`、`stepId`、`status`、`runPlaywrightCode`、`expectedOutcome`、`actualOutcome`、`result`。
+3. **一步一記**：**完成一個步驟就上報一次**；禁止把多個操作合併成一筆紀錄。
+4. **明確狀態**：`status` 只能是 `success | warning | failed | skipped`。`failed` 必須附錯誤訊息或截圖路徑。
+5. **比對必填**：凡有「預期結果」的步驟，`expectedOutcome` 與 `actualOutcome` 必填並比對。
+6. **嚴格順序**：預設 **依序執行**，除非清單標註可並行。
+7. **保護資料**：有破壞性操作（例如刪除、重置）僅允許在 **Teardown** 區塊。
+8. **環境固定**：瀏覽器型別、是否無頭模式、解析度等需與 `browser_create_instance` 參數一致，以避免 UI 差異。
+9. **可重跑**：流程需具 **冪等性**（能重複執行且結果一致），必要時在步驟內先檢查/還原狀態。
+10. **中斷處理**：遇到關鍵失敗可停止剩餘步驟並直接輸出 `summarize_results`；若設定允許續跑，必須標記後續步驟來源風險。
+
+---
+
+## 2. 序列化資料
+
+AI 會解析 BDD 檔，將每個步驟轉為標準結構，並**透過 MCP 暫存在本機記憶體**。
+
+**資料結構（範例）**
+
+```json
+{
+  "testId": "[測試案例ID]",
+  "meta": {
+    "title": "[測試案例標題]",
+    "goal": "[測試目標描述]"
+  },
+  "browser": {
+    "browserType": "chromium",
+    "headless": false,
+    "viewport": { "width": 960, "height": 406 }
+  },
+  "steps": [
+    {
+      "id": "G1",
+      "type": "Given",
+      "description": "[前置條件描述]",
+      "expectedOutcome": "[預期結果]"
+    },
+    {
+      "id": "W1",
+      "type": "When",
+      "description": "[操作步驟描述]",
+      "expectedOutcome": "[預期結果]"
+    },
+    {
+      "id": "T1",
+      "type": "Then",
+      "description": "[驗證步驟描述]",
+      "expectedOutcome": "[預期結果]"
+    },
+    {
+      "id": "TD1",
+      "type": "Teardown",
+      "description": "[清理步驟描述]",
+      "expectedOutcome": "[預期結果]"
+    }
+  ]
+}
+```
+
+## 3. 待執行清單
+
+initialize_test 會把序列化後的步驟回傳為勾選清單，供 AI 逐步執行與打勾：
+
+**待執行清單（範例）**
+
+```
+[ ] [Given] G1: [前置條件描述]
+[ ] [When ] W1: [操作步驟描述]
+[ ] [Then ] T1: [驗證步驟描述]
+[ ] [Teardown] TD1: [清理步驟描述]
+```
+
+## 4. 紀錄步驟結果
+
+每完成 一個 步驟就呼叫 record_step，並回寫清單狀態；未完成的步驟維持待執行：
+
+**record_step 請求（範例）**
+
+```json
+{
+  "testId": "[測試案例ID]",
+  "stepId": "[步驟ID]",
+  "description": "[步驟描述]",
+  "status": "success",
+  "runPlaywrightCode": "[執行的Playwright程式碼]",
+  "expectedOutcome": "[預期結果]",
+  "actualOutcome": "[實際結果]",
+  "result": "[執行結果說明]",
+  "evidence": {
+    "screenshotPath": "[截圖路徑]",
+    "consoleLogs": "[日誌路徑]"
+  }
+}
+```
+
+**清單回饋（範例）**
+
+```
+[x] [When ] W1: [操作步驟描述]
+[ ] [Then ] T1: [驗證步驟描述]
+...
+```
+
+## 5. 執行結果
+
+所有步驟完成（或中斷）後呼叫 summarize_results：
+
+**執行結果（範例）**
+
+```
+# 測試 "[測試案例ID]" 執行結果摘要
+
+## 整體狀態
+狀態：✅ 成功
+步驟完成率：100% (X/X)
+執行時間：XXX 秒
+總步驟數（已執行/總數）：X/X
+
+## 步驟狀態
+✅ 成功：X
+⚠️ 警告：X
+❌ 失敗：X
+⏭ 跳過：X
+
+## 備註
+- 解析度：960 × 406（非無頭模式）
+- 使用工具：playwright-mcp-local-multi
+- 每步均已 `record_step` 上報並留存證據
+```
