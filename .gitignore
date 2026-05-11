@@ -57,6 +57,9 @@ coverage.xml
 .gemini/
 .agent/
 __pycache__
+aisdlc/
+openspec/
+ref/
 
 # 專案產生的暫存或匯出檔案
 *.csv
